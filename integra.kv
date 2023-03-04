@@ -1,0 +1,239 @@
+#:kivy 2.1.0
+
+#:import hex kivy.utils.get_color_from_hex
+
+<BackgroundColor@Widget>:
+  background_color: 0, 0, 0, 0
+  canvas.before:
+    Color:
+      rgba: root.background_color
+    Rectangle:
+      size: self.size
+      pos: self.pos
+
+<ColoredBoxLayout@BoxLayout+BackgroundColor>:
+  background_color: 0, 0, 0, 0
+
+<ColoredTextInput@TextInput>:
+  background_color: 0, 0, 0, 0
+  foreground_color: 1, 1, 1, 1
+
+<MenuButton@Button>:
+  background_color: 0, 0, 0, 0
+  always_release: True
+
+<DropdownButton>:
+  size_hint_y: None
+  height: 28
+  background_color: hex('#919191')
+  always_release: True
+
+<DropdownMenu>:
+  max_height: 240
+
+
+<DeviceTitle@ColoredBoxLayout>:
+  orientation: 'horizontal'
+
+  Label:
+    size_hint_x: 0.2
+  Label:
+    text: 'Name'
+  Label:
+    size_hint_x: 0.2
+    text: 'Clean-up'
+  Label:
+    text: 'Package'
+  Label:
+    size_hint_x: 0.4
+    text: 'Edition'
+  Label:
+    size_hint_x: 0.4
+    text: 'Remote'
+  Label:
+    size_hint_x: 0.65
+    text: 'Host'
+  Label:
+    size_hint_x: 0.4
+    text: 'Port'
+  Label:
+    size_hint_x: 0.4
+    font_size: 12
+    halign: 'center'
+    text: 'Container\nport'
+  Label:
+    size_hint_x: 0.6
+    text: 'Username'
+  Label:
+    text: 'Upload directory'
+  Label:
+    text: 'Description'
+
+<DeviceUnit>:
+  orientation: 'horizontal'
+
+  selected: cb_selected.active
+  cleanup: cb_cleanup.active
+  remote: cb_remote.active
+
+  CheckBox:
+    id: cb_selected
+    key: 'selected'
+    size_hint_x: 0.2
+    active: root.selected
+    on_release: root.set_data(self.key, self.active)
+  ColoredTextInput:
+    id: ti_name
+    key: 'name'
+    text_size: self.size
+    font_size: 14
+    multiline: False
+    halign: 'left'
+    hint_text: '—'
+    text: root.name
+    on_text_validate: root.set_data(self.key, self.text)
+  CheckBox:
+    id: cb_cleanup
+    key: 'cleanup'
+    size_hint_x: 0.2
+    active: root.cleanup
+    on_release: root.set_data(self.key, self.active)
+  MenuButton:
+    id: mb_ptype
+    key: 'ptype'
+    text: root.ptype
+    on_release: app.dropdown_ptype.open(self)
+  MenuButton:
+    id: mb_edition
+    key: 'edition'
+    size_hint_x: 0.4
+    text: root.edition
+    on_release: app.dropdown_edition.open(self)
+  CheckBox:
+    id: cb_remote
+    key: 'remote'
+    size_hint_x: 0.4
+    active: root.remote
+    disabled: True
+    on_release: root.set_data(self.key, self.active)
+  ColoredTextInput:
+    id: ti_host
+    key: 'host'
+    size_hint_x: 0.65
+    multiline: False
+    halign: 'center'
+    hint_text: '—'
+    text: root.host
+    on_text_validate: root.set_data(self.key, self.text)
+  ColoredTextInput:
+    id: ti_port
+    key: 'port'
+    size_hint_x: 0.4
+    multiline: False
+    halign: 'center'
+    text: str(root.port)
+    on_text_validate: root.set_data(self.key, self.text)
+  ColoredTextInput:
+    id: ti_cport
+    key: 'cport'
+    size_hint_x: 0.4
+    multiline: False
+    halign: 'center'
+    text: str(root.cport)
+    on_text_validate: root.set_data(self.key, self.text)
+  ColoredTextInput:
+    id: ti_username
+    key: 'username'
+    size_hint_x: 0.6
+    multiline: False
+    halign: 'center'
+    hint_text: '—'
+    text: root.username
+    on_text_validate: root.set_data(self.key, self.text)
+  ColoredTextInput:
+    id: ti_upload_dir
+    key: 'upload_dir'
+    multiline: False
+    text_size: self.size
+    font_size: 14
+    halign: 'left'
+    hint_text: '—'
+    text: root.upload_dir
+    on_text_validate: root.set_data(self.key, self.text)
+  ColoredTextInput:
+    id: ti_description
+    key: 'description'
+    multiline: False
+    text_size: self.size
+    font_size: 14
+    halign: 'left'
+    hint_text: '—'
+    text: root.description
+    on_text_validate: root.set_data(self.key, self.text)
+
+
+<DeviceTable>:
+  viewclass: 'DeviceUnit'
+  scroll_type: ['bars', 'content']
+  padding: 2
+  spacing: 4
+  RecycleBoxLayout:
+    orientation: 'vertical'
+    default_size: None, dp(32)
+    default_size_hint: 1, None
+    size_hint_y: None
+    height: self.minimum_height
+
+
+<DeployButton>:
+
+
+<Console>:
+  background_color: hex('#292929')
+  cursor_color: hex('#57c996')
+  foreground_color: hex('#4aff98')
+  font_name: './media/Flexi_IBM_VGA_True'
+  font_size: 20
+  multiline: True
+  readonly: True
+  do_wrap: True
+
+
+<Main>:
+  BoxLayout:
+    orientation: 'vertical'
+    height: root.height
+    width: root.width
+
+    DeviceTitle:
+      size_hint: 1, 0.1
+      background_color: hex('#252525')
+
+    DeviceTable:
+      id: device_table
+      size_hint: 1, 0.6
+
+    ColoredBoxLayout:
+      orientation: 'horizontal'
+      size_hint: 1, 0.08
+      padding: 4
+      background_color: hex('#101010')
+
+      Label:
+      DeployButton:
+        size_hint: 0.5, 1
+        text: 'Deploy'
+      Label:
+
+    BoxLayout:
+      orientation: 'horizontal'
+      size_hint: 1, 0.8
+
+      ScrollView:
+        id: scroller
+        do_scroll_x: False
+        do_scroll_y: True
+        Console:
+          id: console
+          size_hint: 1, None
+          height: max(self.minimum_height, scroller.height)

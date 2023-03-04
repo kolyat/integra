@@ -1,0 +1,13 @@
+keyring==23.9.3
+pyyaml==6.0
+requests==2.28.1
+
+smbprotocol==1.9.0
+wmi==1.5.1
+pywinrm==0.4.3
+pure-python-adb
+paramiko==2.11.0
+docker==6.0.0
+
+kivy==2.1.0
+pyinstaller==5.7.0

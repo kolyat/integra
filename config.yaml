@@ -1,0 +1,4 @@
+fileserver_url: https://file.server
+username: user
+shared_host: 192.168.1.25
+download_dir: C:\tmp
