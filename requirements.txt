@@ -11,3 +11,4 @@ docker==6.0.0
 
 kivy==2.1.0
 pyinstaller==5.7.0
+mdpdf==0.0.18
