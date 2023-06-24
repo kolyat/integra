@@ -18,7 +18,7 @@ Windows 7 or higher.
 
 ### Tools
 
-1. [**Android SDK platform tools**](https://developer.android.com/tools/releases/platform-tools) or [scrcpy](https://github.com/Genymobile/scrcpy) in order to get ADB.
+1. [**Android SDK platform tools**](https://developer.android.com/tools/releases/platform-tools) or [**scrcpy**](https://github.com/Genymobile/scrcpy) in order to get ADB.
 2. [**webOS CLI**](https://webostv.developer.lge.com/develop/tools/cli-installation).
 
 
@@ -123,13 +123,13 @@ See ``/utils/bundletool/README`` for details.
 
 1. Make sure that ``shared_host`` (in ``config.yaml``) is available and does
 not require authentication.
-2. URL launcher of target device is configured properly.
+2. _URL launcher_ of target device is configured properly.
 
 ### webOS
 
 1. Make sure that ``shared_host`` (in ``config.yaml``) is available and does
 not require authentication.
-2. SI Server settings of target device are configured properly.
+2. _SI Server_ settings of target device are configured properly.
 
 For debug packages:
 1. Enable Developer mode on target device.
@@ -141,5 +141,5 @@ with ``ares-novacom --device target_device --getkey``.
 ### Browser version
 
 1. Prepare target host with Ubuntu (see _Ubuntu_ section).
-2. Install [**Docker engine**]((https://docs.docker.com/engine/install/ubuntu/)).
+2. Install [**Docker engine**](https://docs.docker.com/engine/install/ubuntu/).
 3. Get nginx image: ``sudo docker image pull nginx``.
