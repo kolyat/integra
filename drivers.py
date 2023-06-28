@@ -233,7 +233,7 @@ class Windows(Driver):
         package = os.path.join('C:', os.sep, self.device['upload_dir'],
                                self.package)
         cmd = f'{package} /VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL ' \
-              f'/CURRENTUSER /LOWESTPRIVILEGES=true'  # TODO: configure this
+              f'/CURRENTUSER /LOWESTPRIVILEGES=true'
         self.printl(f'installing {self.package} ...')
         # _, rvalue = self.obj.Win32_Process.Create(CommandLine=cmd)
         result = self.client.run_cmd(package, cmd.split(' '))
@@ -286,20 +286,24 @@ class Android(Driver):
 
                 proc = self.run_proc(
                     f'java -jar {bundletool} build-apks '
-                    f'--output="{apks}" '
-                    f'--connected-device '
                     f'--bundle="{aab}" '
+                    f'--output="{apks}" '
+                    f'--overwrite '
                     f'--ks="{aab_key}" '
                     f'--ks-pass=pass:passwd '
-                    f'--ks-key-alias=als'
-                )  # TODO: configure this
+                    f'--ks-key-alias=als '
+                    f'--connected-device '
+                    f'--device-id="{self.obj.serial}"'
+                )
                 if proc.returncode:
                     self.printl(proc.stderr)
                     raise InstallError(self.package,
                                        'failed to build target.apks')
 
                 proc = self.run_proc(
-                    f'java -jar {bundletool} install-apks --apks="{apks}"'
+                    f'java -jar {bundletool} install-apks '
+                    f'--apks="{apks}" '
+                    f'--device-id="{self.obj.serial}"'
                 )
                 if proc.returncode:
                     self.printl(proc.stderr)
