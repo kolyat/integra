@@ -143,3 +143,5 @@ with ``ares-novacom --device target_device --getkey``.
 1. Prepare target host with Ubuntu (see _Ubuntu_ section).
 2. Install [**Docker engine**](https://docs.docker.com/engine/install/ubuntu/).
 3. Get nginx image: ``sudo docker image pull nginx``.
+4. [**Set up**](https://stackoverflow.com/questions/44411828/cannot-connect-to-the-docker-daemon-port-2375)
+Docker daemon.
