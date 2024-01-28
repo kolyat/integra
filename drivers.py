@@ -291,7 +291,7 @@ class Android(Driver):
                     f'--overwrite '
                     f'--ks="{aab_key}" '
                     f'--ks-pass=pass:passwd '
-                    f'--ks-key-alias=als '
+                    f'--ks-key-alias=ar '
                     f'--connected-device '
                     f'--device-id="{self.obj.serial}"'
                 )
@@ -328,7 +328,11 @@ class MacOS(Nix):
     """
     def cleanup(self) -> bool:
         # TODO: uninstall previous version
+        # /Applications/Addreality Player.app
         # TODO: remove residual data
+        # tclutil reset ALL com.addreality.player2
+        # /private/var/db/receipts/com.addreality.player2*
+        # /Users/user/Library/Application Support/com.addreality.player2
         return True
 
     def install(self) -> bool:
@@ -703,6 +707,7 @@ DRIVERS = {
     'x86':    Android,
     'x86_64': Android,
     'aab':    Android,
+    'universal apk': Android,
 
     # Apple
     'pkg': MacOS,

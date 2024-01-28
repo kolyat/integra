@@ -46,7 +46,7 @@ class Foreman:
         :type devices: list
 
         :param button: callback widget (button)
-        :type button: kivu.uix object
+        :type button: kivy.uix object
         """
         logging.info(f'{__name__}: * * * * * * * * * * * * Deployment started')
         self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=3)
