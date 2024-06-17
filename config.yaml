@@ -1,4 +1,85 @@
 fileserver_url: https://file.server
 username: user
-shared_host: 192.168.1.25
 download_dir: C:\tmp
+
+ptypes:
+  win32:
+    mask: win32.exe
+    driver: Windows
+  win64:
+    mask: win64.exe
+    driver: Windows
+  arm:
+    mask: arm.apk
+    driver: Android
+  armv8:
+    mask: armv8.apk
+    driver: Android
+  armv8 market:
+    mask: armv8-play.apk
+    driver: Android
+  x86:
+    mask: x86.apk
+    driver: Android
+  x86_64:
+    mask: x86_64.apk
+    driver: Android
+  aab:
+    mask: .aab
+    driver: Android
+  aab market:
+    mask: play.aab
+    driver: Android
+  universal apk:
+    mask: universal.apk
+    driver: Android
+  pkg:
+    mask: .pkg
+    driver: macOS
+  linux_arm64:
+    mask: .AppImage
+    driver: Raspbian
+  linux_arm64 debug:
+    mask: debug.AppImage
+    driver: Raspbian
+  linux_x86_64:
+    mask: linux_x86_64.zip
+    driver: Linux
+  deb:
+    mask: amd64.deb
+    driver: Debian
+  tizen:
+    mask: tizen
+    driver: Tizen
+  webos.ipk:
+    mask: webos.ipk
+    driver: webOS
+  debug.ipk:
+    mask: webos-debug.ipk
+    driver: webOS debug
+  web:
+    mask: web
+    driver: Web
+
+editions:
+  green:
+    general:
+      app: green.test.app
+    raspbian:
+      app: App
+      proc: App
+    ubuntu:
+      app: green-app
+      proc: green-app
+    linux:
+      app: Green App
+      proc: Green App
+  yellow:
+    general:
+      app: yellow.test.app
+    raspbian:
+      app: YellowApp
+      proc: YellowApp
+  red:
+    general:
+      app: red.test.app

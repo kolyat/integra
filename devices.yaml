@@ -4,8 +4,13 @@
   host: 192.168.1.41
   port: 135
   username: user_win
-  upload_dir: swap
+  upload_dir: \\192.168.1.41\swap
 
+- name: MuMu
+  ptype: aab
+  edition: green
+  host: localhost
+  port: 7555
 - name: PrimeOS
   ptype: aab
   edition: green
@@ -28,6 +33,7 @@
   host: 192.168.1.30
   port: 22
   username: user_mac
+  upload_dir: /Users/user_mac/Downloads
 
 - name: Raspberry Pi 3B
   ptype: linux_arm64
@@ -35,25 +41,27 @@
   host: 192.168.1.61
   port: 22
   username: pi
+  upload_dir: /home/pi/Desktop
 - name: Ubuntu
   ptype: deb
   edition: green
   host: 192.168.1.45
   port: 22
   username: user_ubuntu
+  upload_dir: /home/user_ubuntu
 
 - name: SSSP6
   ptype: tizen
   edition: blue
   cport: 8081
-  upload_dir: \Deploy\sssp6
+  upload_dir: \\192.168.1.1\Deploy\sssp6
   cleanup: true
 
 - name: webos4
   ptype: webos.ipk
   edition: blue
   cport: 8092
-  upload_dir: \Deploy\webos4
+  upload_dir: \\192.168.1.1\Deploy\webos4
   cleanup: true
 - name: webos4 debug
   ptype: debug.ipk

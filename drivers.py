@@ -7,8 +7,7 @@ import shutil
 import zipfile
 
 import smbclient.shutil
-import wmi
-import winrm
+
 from ppadb.client import Client as AdbClient
 from ppadb import InstallError
 import paramiko
@@ -33,7 +32,7 @@ class Driver(log.Logger):
         self.package = package
         self.client = None
         self.obj = None
-        self.dest = None
+        self.dest = self.device['upload_dir']
 
     @abc.abstractmethod
     def connect(self) -> Union[Any, None]:
@@ -107,8 +106,7 @@ class Nix(Driver):
     """Common driver for *nix systems.
     """
     def connect(self) -> Union[Any, None]:
-        self.printl(
-            f'connecting to {self.device["host"]}:{self.device["port"]} ...')
+        self.printl(f'ssh to {self.device["host"]}:{self.device["port"]} ...')
         try:
             self.client = paramiko.SSHClient()
             self.client.load_system_host_keys()
@@ -120,7 +118,7 @@ class Nix(Driver):
                 password=keyring.get_password('system',
                                               self.device['username'])
             )
-            self.printl(f'connected to {self.device["name"]} via SSH')
+            self.printl(f'connected')
             return self.client
         except Exception as e:
             self.printl('failed to connect')
@@ -140,7 +138,7 @@ class Nix(Driver):
                             filename
         :type upload_path: str
         """
-        self.printl(f'copying to destination {upload_path} ...')
+        self.printl(f'copying {self.package} to {upload_path} ...')
         sftp = self.client.open_sftp()
         sftp.put(os.path.join(config.conf['download_dir'], self.package),
                  upload_path)
@@ -175,14 +173,17 @@ class Windows(Driver):
     """Driver for Windows devices.
     """
     def connect(self):
-        self.printl(f'connecting to {self.device["host"]} ...')
         try:
+            self.printl(f'smbclient to {self.device["host"]} ...')
             smbclient.register_session(
                 self.device['host'],
                 username=self.device['username'],
                 password=keyring.get_password('system',
                                               self.device['username'])
             )
+            self.printl('connected')
+            # import wmi
+            # self.printl(f'wmi to {self.device["host"]} ...')
             # self.client = wmi.WMI(
             #     self.device['host'],
             #     user=self.device['username'],
@@ -191,6 +192,8 @@ class Windows(Driver):
             # )
             # self.printl(f'connected to '
             #             f'{self.client.Win32_OperatingSystem()[0].Caption}')
+            import winrm
+            self.printl(f'winrm to {self.device["host"]} ...')
             self.client = winrm.Session(
                 self.device['host'],
                 auth=(
@@ -204,36 +207,30 @@ class Windows(Driver):
             self.printl(str(e))
             return None
 
-        self.dest = os.path.join(
-            r'\\', self.device['host'], self.device['upload_dir']
-        )
         if not smbclient.path.isdir(self.dest):
-            self.printl(f'{self.dest} is not available')
+            self.printl(f'{self.dest} does not exist')
             return None
         return self.client
 
     def cleanup(self) -> bool:
-        # TODO: uninstall previous version
-        # TODO: remove residual data
         return True
 
     def install(self) -> bool:
         try:
-            self.printl(f'uploading {self.package} ...')
+            self.printl(f'uploading {self.package} to {self.dest} ...')
             smbclient.shutil.copy(
                 os.path.join(config.conf['download_dir'], self.package),
                 self.dest
             )
-            self.printl(f'uploaded to {self.dest}')
+            self.printl('done')
         except Exception as e:
             self.printl('uploading failed')
             self.printl(str(e))
             return False
 
-        package = os.path.join('C:', os.sep, self.device['upload_dir'],
-                               self.package)
-        cmd = f'{package} /VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL ' \
-              f'/CURRENTUSER /LOWESTPRIVILEGES=true'
+        package = os.path.join(self.dest, os.sep, self.package)
+        cmd = '/VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL /CURRENTUSER' \
+              ' /LOWESTPRIVILEGES=true'
         self.printl(f'installing {self.package} ...')
         # _, rvalue = self.obj.Win32_Process.Create(CommandLine=cmd)
         result = self.client.run_cmd(package, cmd.split(' '))
@@ -256,8 +253,7 @@ class Android(Driver):
         self.client = AdbClient(host='127.0.0.1', port=5037)
 
     def connect(self):
-        self.printl(f'connecting to '
-                    f'{self.device["host"]}:{self.device["port"]} ... ')
+        self.printl(f'adb to {self.device["host"]}:{self.device["port"]} ... ')
         if self.client.remote_connect(
                 self.device['host'], self.device['port']):
             self.printl('connected')
@@ -269,13 +265,13 @@ class Android(Driver):
         return self.obj
 
     def cleanup(self) -> bool:
-        self.obj.uninstall(config.EDITIONS[self.device['edition']])
+        self.obj.uninstall(config.conf['editions'][self.device['edition']])
         return True
 
     def install(self) -> bool:
         self.printl(f'installing {self.package} ...')
         try:
-            if self.device['ptype'] == 'aab':
+            if 'aab' in self.device['ptype']:
                 aab = os.path.join(config.conf["download_dir"], self.package)
                 bundletool = os.path.abspath(config.conf["bundletool"])
                 aab_key = os.path.abspath(config.conf["aab_key"])
@@ -284,6 +280,7 @@ class Android(Driver):
                 if os.path.exists(apks):
                     os.remove(apks)
 
+                self.printl('building target.apks ... ')
                 proc = self.run_proc(
                     f'java -jar {bundletool} build-apks '
                     f'--bundle="{aab}" '
@@ -299,7 +296,10 @@ class Android(Driver):
                     self.printl(proc.stderr)
                     raise InstallError(self.package,
                                        'failed to build target.apks')
+                else:
+                    self.printl('done')
 
+                self.printl('installing target.apks ... ')
                 proc = self.run_proc(
                     f'java -jar {bundletool} install-apks '
                     f'--apks="{apks}" '
@@ -309,6 +309,8 @@ class Android(Driver):
                     self.printl(proc.stderr)
                     raise InstallError(self.package,
                                        'failed to install target.apks')
+                else:
+                    self.printl('done')
             else:
                 self.obj.install(
                     os.path.join(config.conf['download_dir'], self.package),
@@ -327,17 +329,10 @@ class MacOS(Nix):
     """Driver for macOS.
     """
     def cleanup(self) -> bool:
-        # TODO: uninstall previous version
-        # /Applications/Addreality Player.app
-        # TODO: remove residual data
-        # tclutil reset ALL com.addreality.player2
-        # /private/var/db/receipts/com.addreality.player2*
-        # /Users/user/Library/Application Support/com.addreality.player2
         return True
 
     def install(self) -> bool:
-        working_dir = f'/Users/{self.device["username"]}/Downloads'
-        pkg = f'{working_dir}/{self.package}'
+        pkg = f'{self.dest}/{self.package}'
 
         self.upload(pkg)
 
@@ -354,21 +349,15 @@ class Linux(Nix):
     """Driver for Linux systems.
     """
     def cleanup(self) -> bool:
-        # TODO: uninstall previous version
-        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
-        home_dir = f'/home/{self.device["username"]}'
-        working_dir = f'{home_dir}/Downloads'
-        pkg = f'{working_dir}/{self.package}'
-        player_dir = f'{home_dir}/{self.package.rstrip(".zip")}'
+        pkg = f'{self.dest}/{self.package}'
+        player_dir = f'{self.dest}/{self.package.rstrip(".zip")}'
 
         self.printl('closing previous version')
-        self.exec(
-            f'pkill '
-            f'{config.EDITIONS[self.device["edition"]]["linux"]["proc"]}'
-        )
+        proc = config.conf["editions"][self.device["edition"]]["linux"]["proc"]
+        self.exec(f'pkill "{proc}"')
 
         self.printl(f'preparing {player_dir} ...')
         self.exec(f'rm -rf {player_dir} ; mkdir {player_dir}')
@@ -376,15 +365,13 @@ class Linux(Nix):
 
         self.upload(pkg)
 
-        self.printl(f'extracting {self.package} ...')
+        self.printl(f'extracting {self.package} to {player_dir} ...')
         self.exec(f'unzip {pkg} -d {player_dir}')
-        self.printl(f'extracted to {player_dir}')
+        self.printl(f'done')
 
         self.printl('launching application')
-        self.exec(
-            f'DISPLAY=:0 nohup {player_dir}/./'
-            f'{config.EDITIONS[self.device["edition"]]["linux"]["app"]}'
-        )
+        app = config.conf["editions"][self.device["edition"]]["linux"]["app"]
+        self.exec(f'DISPLAY=:0 nohup "{player_dir}/./{app}"')
 
         return True
 
@@ -393,25 +380,21 @@ class Raspbian(Nix):
     """Driver for Raspbian.
     """
     def cleanup(self) -> bool:
-        # TODO: uninstall previous version
-        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
-        working_dir = f'/home/{self.device["username"]}/Desktop'
-        pkg = f'{working_dir}/{self.package}'
+        pkg = f'{self.dest}/{self.package}'
 
         self.printl('closing previous version')
-        self.exec(
-            f'pkill '
-            f'{config.EDITIONS[self.device["edition"]]["raspbian"]["proc"]}'
-        )
+        proc = \
+            config.conf["editions"][self.device["edition"]]["raspbian"]["proc"]
+        self.exec(f'pkill {proc}')
 
         self.upload(pkg)
 
         self.exec(
             f'chmod a+x {pkg} ; '
-            f'cd {working_dir} ; '
+            f'cd {self.dest} ; '
             f'DISPLAY=:0 nohup ./{self.package}'
         )
         self.printl('application is being launched')
@@ -423,32 +406,26 @@ class Debian(Nix):
     """Driver for Debian-based systems (e. g., Ubuntu).
     """
     def cleanup(self) -> bool:
-        # TODO: uninstall previous version
-        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
-        working_dir = f'/home/{self.device["username"]}/Downloads'
-        pkg = f'{working_dir}/{self.package}'
+        pkg = f'{self.dest}/{self.package}'
 
         self.upload(pkg)
 
         pwd = keyring.get_password('system', self.device['username'])
 
         self.printl('closing previous version')
-        self.exec(
-            f'pkill '
-            f'{config.EDITIONS[self.device["edition"]]["ubuntu"]["proc"]}'
-        )
+        proc = \
+            config.conf["editions"][self.device["edition"]]["ubuntu"]["proc"]
+        self.exec(f'pkill {proc}')
 
-        self.printl('installing application...')
+        self.printl('installing application ... ')
         self.exec(f'sudo dpkg -i {pkg}', pwd)
 
-        self.printl('launching application')
-        self.exec(
-            f'DISPLAY=:0 nohup '
-            f'{config.EDITIONS[self.device["edition"]]["ubuntu"]["app"]}'
-        )
+        self.printl('launching application ... ')
+        app = config.conf["editions"][self.device["edition"]]["ubuntu"]["app"]
+        self.exec(f'DISPLAY=:0 nohup {app}')
 
         return True
 
@@ -457,19 +434,18 @@ class SharedHost(Driver):
     """Deployment to shared host (shared_host in config.yaml)
     """
     def connect(self) -> Union[Any, None]:
-        self.dest = \
-            f'\\\\{config.conf["shared_host"]}{self.device["upload_dir"]}'
-        self.printl(f'checking {self.dest} ...')
+        self.printl(f'smbclient to {self.device["host"]} ...')
         try:
             smbclient.ClientConfig(require_secure_negotiate=False)
-            smbclient.register_session(config.conf['shared_host'],
+            smbclient.register_session(self.device['host'],
                                        require_signing=False)
         except Exception as e:
             self.printl('unable to connect')
             self.printl(str(e))
             return None
+        self.printl(f'checking {self.dest} ...')
         if not smbclient.path.isdir(self.dest):
-            self.printl(f'{self.dest} is not available')
+            self.printl(f'{self.dest} does not exist')
             return None
         self.printl('path found')
         return self.dest
@@ -485,12 +461,12 @@ class SharedHost(Driver):
         return True
 
     def install(self) -> bool:
-        self.printl(f'extracting {self.package} ...')
+        self.printl(f'extracting {self.package} to {self.dest} ...')
         package = \
             zipfile.ZipFile(os.path.join(config.conf['download_dir'],
                                          self.package))
         package.extractall(path=self.dest)
-        self.printl(f'extracted to {self.dest}')
+        self.printl(f'done')
         package.close()
         return True
 
@@ -506,12 +482,13 @@ class WebOS(SharedHost):
     Installs production package.
     """
     def install(self) -> bool:
-        self.printl(f'copying {self.package} ...')
+        pkg = f'{self.dest}\\Player.ipk'
+        self.printl(f'copying {self.package} to {pkg} ...')
         smbclient.shutil.copy(
             os.path.join(config.conf['download_dir'], self.package),
-            f'{self.dest}\\Player.ipk'
+            pkg
         )
-        self.printl(f'copied to {self.dest}\\Player.ipk')
+        self.printl(f'done')
         return True
 
 
@@ -622,7 +599,6 @@ class Web(Nix):
         self.dclient = None
 
     def connect(self):
-        self.dest = self.device['upload_dir']
         base_url = f'tcp://{self.device["host"]}:2375'
         try:
             self.printl(f'connecting to docker daemon at {base_url}')
@@ -664,7 +640,7 @@ class Web(Nix):
         return True
 
     def install(self) -> bool:
-        self.printl(f'extracting {self.package} ...')
+        self.printl(f'extracting {self.package} to {self.dest} ...')
         lpkg = os.path.join(config.conf['download_dir'], self.package)
         if self.device['remote']:
             rpkg = f'{self.dest}/{self.package}'
@@ -676,7 +652,7 @@ class Web(Nix):
             package = zipfile.ZipFile(lpkg)
             package.extractall(path=self.dest)
             package.close()
-        self.printl(f'extracted to {self.dest}')
+        self.printl('done')
 
         self.printl('running docker container...')
         self.obj = self.dclient.containers.run(
@@ -697,36 +673,14 @@ class Web(Nix):
 
 
 DRIVERS = {
-    # Windows
-    'win32': Windows,
-    'win64': Windows,
-
-    # Android
-    'arm':    Android,
-    'armv8':  Android,
-    'x86':    Android,
-    'x86_64': Android,
-    'aab':    Android,
-    'universal apk': Android,
-
-    # Apple
-    'pkg': MacOS,
-    'ipa': 'ios',
-
-    # Raspbian
-    'linux_arm64': Raspbian,
-
-    # Linux
-    'linux_x86_64': Linux,
-    'deb': Debian,
-
-    # Samsung Tizen
-    'tizen': Tizen,
-
-    # LG webOS
-    'webos.ipk': WebOS,
-    'debug.ipk': WebOSdebug,
-
-    # Web browser
-    'web': Web
+    'Windows': Windows,
+    'Android': Android,
+    'macOS': MacOS,
+    'Raspbian': Raspbian,
+    'Linux': Linux,
+    'Debian': Debian,
+    'Tizen': Tizen,
+    'webOS': WebOS,
+    'webOS debug': WebOSdebug,
+    'Web': Web
 }

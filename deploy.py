@@ -5,6 +5,7 @@ import logging
 import concurrent.futures
 
 from utils import log
+import config
 import client
 import drivers
 
@@ -23,7 +24,8 @@ class Worker(log.Logger):
             fs_client = client.FsClient()
             packages = fs_client.list_packages(self.device)
             package = fs_client.download_package(packages[0])
-            drivers.DRIVERS[self.device['ptype']](self.device, package).deploy()
+            driver = config.conf['ptypes'][self.device['ptype']]['driver']
+            drivers.DRIVERS[driver](self.device, package).deploy()
         except IndexError:
             self.printl(f'{self.device["ptype"]} not found')
             self.printl('! ! ! ! ! ! Deployment failed')

@@ -9,10 +9,34 @@ import drivers
 DEFAULTS = {
     'fileserver_url': 'https://file.server',
     'username': 'user',
-    'shared_host': '192.168.1.25',
     'download_dir': './downloads',
     'bundletool': './utils/bundletool/bundletool.jar',
-    'aab_key': './utils/bundletool/default_aab_key.jks'
+    'aab_key': './utils/bundletool/default_aab_key.jks',
+    'ptypes': {
+        'win64': {
+            'mask': 'win64.exe',
+            'driver': 'Windows'
+        },
+        'arm': {
+            'mask': 'arm.apk',
+            'driver': 'Android'
+        }
+    },
+    'editions': {
+        'green': {
+            'general': {'app': 'green.test.app'},
+            'raspbian': {'app': 'App', 'proc': 'App'},
+            'ubuntu': {'app': 'green-app', 'proc': 'green-app'},
+            'linux': {'app': '"Green App"', 'proc': '"Green App"'},
+        },
+        'yellow': {
+            'general': {'app': 'yellow.test.app'},
+            'raspbian': {'app': 'YellowApp', 'proc': 'YellowApp'},
+        },
+        'red':  {'general': {'app': 'red.test.app'}},
+        'blue': {'general': {'app': 'blue.test.app'}},
+        'pink': {'general': {'app': 'pink.test.app'}}
+    }
 }
 
 
@@ -33,23 +57,7 @@ if not os.path.isfile(CONFIG_FILE):
     if not os.path.isfile(CONFIG_FILE):
         CONFIG_FILE = ''
 
-EDITIONS = {
-    'green': {
-        'general': {'app': 'green.test.app'},
-        'raspbian': {'app': 'App', 'proc': 'App'},
-        'ubuntu': {'app': 'green-app', 'proc': 'green-app'},
-        'linux': {'app': '"Green App"', 'proc': '"Green App"'},
-    },
-    'yellow': {
-        'general': {'app': 'yellow.test.app'},
-        'raspbian': {'app': 'YellowApp', 'proc': 'YellowApp'},
-    },
-    'red':  {'general': {'app': 'red.test.app'}},
-    'blue': {'general': {'app': 'blue.test.app'}},
-    'pink': {'general': {'app': 'pink.test.app'}},
-}
-DEFAULT_EDITION = list(EDITIONS.keys())[0]
-PTYPES = drivers.DRIVERS.keys()
+DEFAULT_EDITION = 'ar'
 DEFAULT_PTYPE = 'arm'
 
 

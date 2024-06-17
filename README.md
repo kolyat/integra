@@ -36,10 +36,11 @@ Use ``/utils/setpwd`` to keep all necessary passwords.
 ``username``: username to access file server (do not forget to set up password 
 with ``setpwd`` utility).
 
-``shared_host``: IP of a shared host (with SMB) where Tizen/webOS packages 
-will be deployed to.
-
 ``download_dir``: local directory for storing test packages.
+
+``ptypes``: package types
+
+``editions``: package editions
 
 ### devices.yaml
 

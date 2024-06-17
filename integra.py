@@ -139,12 +139,12 @@ class IntegraApp(kivy_app.App):
         if config.DEVICES_FILE == '':
             logging.warning('devices.yaml not found')
 
-        for ptype in config.PTYPES:
+        for ptype in config.conf['ptypes'].keys():
             item = DropdownButton(text=f'{ptype}')
             item.bind(on_release=lambda btn: self.dropdown_ptype.select(btn))
             self.dropdown_ptype.add_widget(item)
         self.dropdown_ptype.bind(on_select=self.dropdown_ptype.update)
-        for edition in config.EDITIONS.keys():
+        for edition in config.conf['editions'].keys():
             item = DropdownButton(text=f'{edition}')
             item.bind(on_release=lambda btn: self.dropdown_edition.select(btn))
             self.dropdown_edition.add_widget(item)
