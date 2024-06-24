@@ -1,6 +1,7 @@
 #:kivy 2.1.0
 
 #:import hex kivy.utils.get_color_from_hex
+#:import Factory kivy.factory.Factory
 
 <BackgroundColor@Widget>:
   background_color: 0, 0, 0, 0
@@ -31,6 +32,38 @@
 <DropdownMenu>:
   max_height: 240
 
+<ConsoleInput@TextInput>:
+  background_color: hex('#292929')
+  cursor_color: hex('#57c996')
+  foreground_color: hex('#4aff98')
+  size_hint_y: 0.06
+  font_name: './media/Flexi_IBM_VGA_True'
+  font_size: 22
+  multiline: False
+  halign: 'left'
+
+<SetPasswordPopup@Popup>:
+  title: 'Set password'
+  title_align: 'center'
+  size_hint: 0.3, 0.3
+  auto_dismiss: True
+  BoxLayout:
+    orientation: 'vertical'
+    ConsoleInput:
+      id: username
+      name: 'username'
+      hint_text: 'Username'
+    ConsoleInput:
+      id: password1
+      name: 'password1'
+      hint_text: 'Password'
+    ConsoleInput:
+      id: password2
+      name: 'password2'
+      hint_text: 'Repeat password'
+    SaveButton:
+      size_hint_y: 0.05
+      text: 'Save'
 
 <DeviceTitle@ColoredBoxLayout>:
   orientation: 'horizontal'
@@ -224,6 +257,10 @@
         size_hint: 0.5, 1
         text: 'Deploy'
       Label:
+      Button:
+        size_hint: 0.25, 1
+        text: 'Set password'
+        on_release: Factory.SetPasswordPopup().open()
 
     BoxLayout:
       orientation: 'horizontal'

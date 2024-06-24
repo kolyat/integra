@@ -3,12 +3,10 @@ import sys
 import logging
 import yaml
 
-import drivers
-
 
 DEFAULTS = {
-    'fileserver_url': 'https://file.server',
-    'username': 'user',
+    'fileserver_url': 'https://fileserver.stable.team',
+    'username': 'ar_user',
     'download_dir': './downloads',
     'bundletool': './utils/bundletool/bundletool.jar',
     'aab_key': './utils/bundletool/default_aab_key.jks',
@@ -23,19 +21,19 @@ DEFAULTS = {
         }
     },
     'editions': {
-        'green': {
-            'general': {'app': 'green.test.app'},
-            'raspbian': {'app': 'App', 'proc': 'App'},
-            'ubuntu': {'app': 'green-app', 'proc': 'green-app'},
-            'linux': {'app': '"Green App"', 'proc': '"Green App"'},
+        'ar': {
+            'general': {'app': 'com.addreality.player2'},
+            'raspbian': {'app': 'Player',
+                         'proc': 'Player'},
+            'ubuntu': {'app': 'addreality-player',
+                       'proc': 'addreality-play'},
+            'linux': {'app': '"Addreality Player"',
+                      'proc': '"Addreality Play"'},
         },
-        'yellow': {
-            'general': {'app': 'yellow.test.app'},
-            'raspbian': {'app': 'YellowApp', 'proc': 'YellowApp'},
-        },
-        'red':  {'general': {'app': 'red.test.app'}},
-        'blue': {'general': {'app': 'blue.test.app'}},
-        'pink': {'general': {'app': 'pink.test.app'}}
+        'df': {
+            'general': {'app': 'ai.displayforce.player'},
+            'raspbian': {'app': 'Player', 'proc': 'Player'},
+        }
     }
 }
 
@@ -82,8 +80,8 @@ class Config(dict):
             )
             return
         try:
-            stream = open(self.config_file, 'r')
-            loaded = yaml.load(stream, Loader=yaml.Loader)
+            stream = open(self.config_file, 'r', encoding='utf-8')
+            loaded = yaml.full_load(stream)
             stream.close()
             self.update(**loaded)
             logging.info(f'{__name__}: Loaded {self.config_file}')

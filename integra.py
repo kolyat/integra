@@ -16,7 +16,7 @@ from kivy.uix.recycleview import views
 from kivy.uix import recycleview, boxlayout, textinput, button, dropdown
 
 import config
-from utils import log
+from utils import log, pwd
 import deploy
 
 
@@ -84,8 +84,8 @@ class DeviceTable(recycleview.RecycleView):
         self.data = []
         if devices_file == '':
             return
-        stream = open(devices_file, 'r')
-        loaded = yaml.load(stream, Loader=yaml.Loader)
+        stream = open(devices_file, 'r', encoding='utf-8')
+        loaded = yaml.full_load(stream)
         stream.close()
         logging.info(f'Devices: Loaded {devices_file}')
         self.data = [{**copy.deepcopy(self.default), **l} for l in loaded]
@@ -112,6 +112,16 @@ class DeployButton(button.Button):
                 group=None, target=deploy.foreman.start_deploy, name='deploy',
                 args=(app.root.ids.device_table.data[:], self), daemon=None
             ).start()
+
+
+class SaveButton(button.Button):
+    def on_release(self):
+        popup = self.parent.parent.parent.parent
+        result = pwd.UserPassword().set_password(popup.ids.username.text,
+                                                 popup.ids.password1.text,
+                                                 popup.ids.password2.text)
+        if result:
+            popup.dismiss()
 
 
 class Console(textinput.TextInput):

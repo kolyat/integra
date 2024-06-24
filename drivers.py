@@ -2,7 +2,6 @@ from typing import Union, Any
 import subprocess
 import os
 import abc
-import keyring
 import shutil
 import zipfile
 
@@ -13,7 +12,7 @@ from ppadb import InstallError
 import paramiko
 import docker
 
-from utils import log
+from utils import log, pwd
 import config
 
 
@@ -115,8 +114,8 @@ class Nix(Driver):
                 hostname=self.device['host'],
                 port=self.device['port'],
                 username=self.device['username'],
-                password=keyring.get_password('system',
-                                              self.device['username'])
+                password=pwd.UserPassword().get_password(
+                    self.device['username'])
             )
             self.printl(f'connected')
             return self.client
@@ -178,8 +177,8 @@ class Windows(Driver):
             smbclient.register_session(
                 self.device['host'],
                 username=self.device['username'],
-                password=keyring.get_password('system',
-                                              self.device['username'])
+                password=pwd.UserPassword().get_password(
+                    self.device['username'])
             )
             self.printl('connected')
             # import wmi
@@ -198,7 +197,7 @@ class Windows(Driver):
                 self.device['host'],
                 auth=(
                     self.device['username'],
-                    keyring.get_password('system', self.device['username'])
+                    pwd.UserPassword().get_password(self.device['username'])
                 )
             )
             self.printl('connected')
@@ -213,6 +212,8 @@ class Windows(Driver):
         return self.client
 
     def cleanup(self) -> bool:
+        # TODO: uninstall previous version
+        # TODO: remove residual data
         return True
 
     def install(self) -> bool:
@@ -329,6 +330,12 @@ class MacOS(Nix):
     """Driver for macOS.
     """
     def cleanup(self) -> bool:
+        # TODO: uninstall previous version
+        # /Applications/Addreality Player.app
+        # TODO: remove residual data
+        # tclutil reset ALL com.addreality.player2
+        # /private/var/db/receipts/com.addreality.player2*
+        # /Users/user/Library/Application Support/com.addreality.player2
         return True
 
     def install(self) -> bool:
@@ -339,7 +346,7 @@ class MacOS(Nix):
         self.printl(f'installing {self.package} ...')
         self.exec(
             f'sudo installer -allowUntrusted -pkg {pkg} -target /Applications',
-            keyring.get_password('system', self.device['username'])
+            pwd.UserPassword().get_password(self.device['username'])
         )
 
         return True
@@ -349,6 +356,8 @@ class Linux(Nix):
     """Driver for Linux systems.
     """
     def cleanup(self) -> bool:
+        # TODO: uninstall previous version
+        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
@@ -380,6 +389,8 @@ class Raspbian(Nix):
     """Driver for Raspbian.
     """
     def cleanup(self) -> bool:
+        # TODO: uninstall previous version
+        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
@@ -406,6 +417,8 @@ class Debian(Nix):
     """Driver for Debian-based systems (e. g., Ubuntu).
     """
     def cleanup(self) -> bool:
+        # TODO: uninstall previous version
+        # TODO: find, remove residual data
         return True
 
     def install(self) -> bool:
@@ -413,7 +426,7 @@ class Debian(Nix):
 
         self.upload(pkg)
 
-        pwd = keyring.get_password('system', self.device['username'])
+        passwd = pwd.UserPassword().get_password(self.device['username'])
 
         self.printl('closing previous version')
         proc = \
@@ -421,7 +434,7 @@ class Debian(Nix):
         self.exec(f'pkill {proc}')
 
         self.printl('installing application ... ')
-        self.exec(f'sudo dpkg -i {pkg}', pwd)
+        self.exec(f'sudo dpkg -i {pkg}', passwd)
 
         self.printl('launching application ... ')
         app = config.conf["editions"][self.device["edition"]]["ubuntu"]["app"]
@@ -524,7 +537,7 @@ class WebOSdebug(Driver):
 
     def connect(self) -> Union[Any, None]:
         self.printl(f'setting up {self.device["name"]}...')
-        phrase = keyring.get_password('system', self.device['name'])
+        phrase = pwd.UserPassword().get_password(self.device['name'])
         info = f"'name':'{self.device['name']}'," \
                f"'host':'{self.device['host']}'," \
                f"'port':'{self.device['port']}'," \

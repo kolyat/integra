@@ -1,6 +1,5 @@
 set author=Kolyat
 
-pyinstaller --clean ./utils/setpwd.spec
 pyinstaller --clean integra.spec
 
 mkdir ".\dist\utils"
@@ -15,7 +14,6 @@ mdpdf --author %author% ^
   --output ".\dist\utils\bundletool\README.pdf" ^
   ".\utils\bundletool\README.md"
 
-move /y ".\dist\setpwd.exe" ".\dist\utils"
 copy /y ".\utils\bundletool\*.*" ".\dist\utils\bundletool"
 copy /y "config.yaml" ".\dist"
 copy /y "devices.yaml" ".\dist"

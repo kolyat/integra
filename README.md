@@ -24,7 +24,7 @@ Windows 7 or higher.
 
 ## Keeping passwords
 
-Use ``/utils/setpwd`` to keep all necessary passwords.
+Use ``Set password`` feature to keep all necessary credentials.
 
 
 ## Settings
