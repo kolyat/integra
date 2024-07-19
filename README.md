@@ -4,7 +4,7 @@
 Tool for multiplatform deployment of test packages, which supports:
 - Windows
 - Android
-- *nix systems: macOS, Raspberry Pi OS, Debian/Ubuntu
+- *nix systems: macOS, Raspberry Pi OS, Debian-like systems, and others
 - Samsung Tizen (SSSP)
 - LG webOS: production-ready or debug packages
 - web deployment in Docker container
@@ -122,14 +122,14 @@ See ``/utils/bundletool/README`` for details.
 
 ### Tizen
 
-1. Make sure that ``shared_host`` (in ``config.yaml``) is available and does
-not require authentication.
+1. Make sure that target host is available by SMB and does not 
+require authentication.
 2. _URL launcher_ of target device is configured properly.
 
 ### webOS
 
-1. Make sure that ``shared_host`` (in ``config.yaml``) is available and does
-not require authentication.
+1. Make sure that target host is available by SMB and does not 
+require authentication.
 2. _SI Server_ settings of target device are configured properly.
 
 For debug packages:
